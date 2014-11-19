@@ -1,7 +1,15 @@
 #!/bin/bash
 
+#Create the cluster with the above etcd key (no ssh keys)
 cluster_id=`curl https://discovery.etcd.io/new` && echo $cluster_id
 sed -i "s_discovery.*_discovery: ${cluster_id}_g" cloud-config.yaml
+
+#Create the pmx-agent vm with a new etcd key & ssh keys
+echo -e  'y\n'|ssh-keygen -q -t rsa -N '' -f id_rsa
+ssh_key_pub="$(<id_rsa.pub)"
+ssh_key_pri="$(<id_rsa)"
+sed -i "s_ssh-rsa.*_${ssh_key_pub}_g" cloud-config-agent.yaml
+
 
 brightbox config client_add $APP_ID $SECRET_ID
 server_group=`brightbox -s groups create -n "coreos" | grep -o grp.* | awk '{print $1}'`
@@ -14,7 +22,7 @@ vm_size=${TYPE:-nano}
 vm_name=${VM_NAME:-"coreos"}
 
 coreos_vm_id=`brightbox servers create -i $NODE_COUNT --type $vm_size --name $vm_name --user-data-file cloud-config.yaml --server-groups $server_group img-2aptj | grep -o -m1 srv.* | awk '{print $1}'`
-pmx_installer_id=`brightbox -s servers create -i 1 --type nano --name "pmxinstaller"  --server-groups $server_group img-2aptj | grep -o -m1 srv.* | awk '{print $1}'`
+pmx_installer_id=`brightbox -s servers create -i 1 --type nano --name "pmxinstaller" --user-data-file cloud-config-agent.yaml --server-groups $server_group img-2aptj | grep -o -m1 srv.* | awk '{print $1}'`
 
 private_ip=`brightbox -s servers show $coreos_vm_id | grep -Eo '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}'`
 pmx_installer_ip=`brightbox -s cloudips create --name  "pmx_installer_ip" | grep -Eo cip-.* | awk '{print $1}'`
@@ -22,9 +30,11 @@ pmx_installer_ip=`brightbox -s cloudips create --name  "pmx_installer_ip" | grep
 sleep 10
 pmx_installer_public_ip=`brightbox cloudips map $pmx_installer_ip $pmx_installer_id  | grep -Eo '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}'`
 
-echo "Brightbox CoreOS cluster complete! You can delete this application from Panamax safely. To complete the Panamax Remote Agent Installation, SSH into your installer ($ ssh core@$pmx_installer_public_ip) and follow these instructions: https://github.com/CenturyLinkLabs/panamax-ui/wiki/Panamax-Remote-Agent-Installation#installing-the-remote-agent"
+echo -e "\n\nBrightbox CoreOS cluster complete! You can delete this application from Panamax safely. \nTo complete the Panamax Remote Agent Installation, \nSSH into your installer ($ ssh core@$pmx_installer_public_ip) and follow these instructions: \nhttps://github.com/CenturyLinkLabs/panamax-ui/wiki/Panamax-Remote-Agent-Installation"
 echo -e "\nFleet API IP: http://$private_ip:4001"
 echo -e "\nPMX Installer IP: $pmx_installer_public_ip"
+echo -e "\n\n\n$ssh_key_pri\n\n\n"
+
 until [ "1" == "0" ];
 do
   sleep 20
