@@ -3,7 +3,6 @@
 cluster_id=`curl https://discovery.etcd.io/new` && echo $cluster_id
 sed -i "s_discovery.*_discovery: ${cluster_id}_g" cloud-config.yaml
 
-
 brightbox config client_add $APP_ID $SECRET_ID
 server_group=`brightbox -s groups create -n "coreos" | grep -o grp.* | awk '{print $1}'`
 
@@ -12,10 +11,7 @@ brightbox -s firewall-rules create --source any --protocol tcp --dport 22,7001,4
 brightbox -s firewall-rules create --destination any $firewall_policy_id
 
 vm_size=${TYPE:-nano}
-vm_name=${VM_NAME:-"pmxinstaller"}
-
-echo vm_name $vm_name
-echo vm_size $vm_size
+vm_name=${VM_NAME:-"coreos"}
 
 coreos_vm_id=`brightbox servers create -i $NODE_COUNT --type $vm_size --name $vm_name --user-data cloud-config.yaml --server-groups $server_group img-2aptj | grep -o -m1 srv.* | awk '{print $1}'`
 pmx_installer_id=`brightbox -s servers create -i 1 --type nano --name "pmxinstaller"  --server-groups $server_group img-2aptj | grep -o -m1 srv.* | awk '{print $1}'`

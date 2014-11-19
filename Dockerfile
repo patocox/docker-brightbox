@@ -1,14 +1,11 @@
-#FROM ubuntu:trusty
+FROM ubuntu:trusty
 
-#RUN apt-get update && \
-#  apt-get -y install software-properties-common && python-software-properties &&  curl &&\
-#  add-apt-repository ppa:brightbox/ppa && \
-#  apt-get update
-#RUN apt-get -y install brightbox-cli
+RUN apt-get update && \
+  apt-get -y install software-properties-common python-software-properties curl && \
+  add-apt-repository ppa:brightbox/ppa && \
+  apt-get update
+RUN apt-get -y install brightbox-cli
 
-FROM patcox/bbox:latest
-
-RUN apt-get -y install curl
 
 ADD cluster cluster
 RUN chmod +x cluster
