@@ -8,7 +8,7 @@ RUN apt-get update && \
 RUN apt-get -y install brightbox-cli
 
 ADD cluster cluster
-RUN chmod 777 cluster
+RUN chmod +x cluster
 ADD cloud-config.yaml cloud-config.yaml
 
 CMD ["./cluster"]
