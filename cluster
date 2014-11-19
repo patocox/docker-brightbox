@@ -22,7 +22,7 @@ pmx_installer_ip=`brightbox -s cloudips create --name  "pmx_installer_ip" | grep
 sleep 10
 pmx_installer_public_ip=`brightbox cloudips map $pmx_installer_ip $pmx_installer_id  | grep -Eo '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}'`
 
-echo "Brightbox CoreOS cluster complete! You can delete this application from Panamax safely. To complete the Panamax Remote Agent Installation, SSH into your installer ($ ssh core@$pmx_installer_public_ip) and follow these instructions: https://github.com/CenturyLinkLabs/panamax-ui/wiki/Panamax-Remote-Agent-Installation#installing-the-remote-agent"
+echo -e "Brightbox CoreOS cluster complete! You can delete this application from Panamax safely. \nTo complete the Panamax Remote Agent Installation, \nSSH into your installer ($ ssh core@$pmx_installer_public_ip) and follow these instructions: \nhttps://github.com/CenturyLinkLabs/panamax-ui/wiki/Panamax-Remote-Agent-Installation"
 echo -e "\nFleet API IP: http://$private_ip:4001"
 echo -e "\nPMX Installer IP: $pmx_installer_public_ip"
 until [ "1" == "0" ];
