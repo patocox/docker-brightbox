@@ -1,0 +1,5 @@
+#!/bin/sh
+
+brightbox config client_add $APP_ID $SECRET_ID
+brightbox servers create -i $NODE_COUNT --type $TYPE --name "coreos" --user-data cloud-config.yaml --server-groups $SERVER_GROUP img-2aptj
+
