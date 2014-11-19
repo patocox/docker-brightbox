@@ -35,6 +35,14 @@ echo -e "\nFleet API IP: http://$private_ip:4001"
 echo -e "\nPMX Installer IP: $pmx_installer_public_ip"
 echo -e "\n\n\n$ssh_key_pri\n\n\n"
 
+
+#Creating etcd keys
+etcd_api=http://${ETCD_API}/v2/keys
+curl -L -X PUT $etcd_api/agent-pri-ssh-key -d value=$ssh_key_pri
+curl -L -X PUT $etcd_api/agent-fleet-api -d value=$private_ip
+curl -L -X PUT $etcd_api/agent-public-ip -d value=$pmx_installer_public_ip
+
+
 until [ "1" == "0" ];
 do
   sleep 20
