@@ -7,7 +7,7 @@ sed -i "s_discovery.*_discovery: ${cluster_id}_g" cloud-config.yaml
 #Create the pmx-agent vm with a new etcd key & ssh keys
 echo -e  'y\n'|ssh-keygen -q -t rsa -N '' -f id_rsa
 ssh_key_pub="$(<id_rsa.pub)"
-ssh_key_pri="$(<id_rsa)"
+ssh_key_pri="$(<id_rsa | base64)"
 sed -i "s_ssh-rsa.*_${ssh_key_pub}_g" cloud-config-agent.yaml
 
 
@@ -38,13 +38,11 @@ echo -e "\n\n\n$ssh_key_pri\n\n\n"
 
 #Creating etcd keys
 etcd_api=http://${ETCD_API}/v2/keys
-curl -L -X PUT $etcd_api/agent-pri-ssh-key -d value=$ssh_key_pri
-curl -L -X PUT $etcd_api/agent-fleet-api -d value=$private_ip
-curl -L -X PUT $etcd_api/agent-public-ip -d value=$pmx_installer_public_ip
-
+curl  --data-urlencode -sL -X PUT $etcd_api/agent-pri-ssh-key -d "value=$ssh_key_pri"
+curl -sL -X PUT $etcd_api/agent-fleet-api -d value=$private_ip
+curl -sL -X PUT $etcd_api/agent-public-ip -d value=$pmx_installer_public_ip
 
 until [ "1" == "0" ];
 do
   sleep 20
 done
-
