@@ -15,7 +15,7 @@ brightbox config client_add $APP_ID $SECRET_ID
 server_group=`brightbox -s groups create -n "coreos" | grep -o grp.* | awk '{print $1}'`
 
 firewall_policy_id=`brightbox firewall-policies create -n "coreos" $server_group | grep -o fwp.* |  awk '{print $1}'`
-brightbox -s firewall-rules create --source any --protocol tcp --dport 22,7001,4001 $firewall_policy_id
+brightbox -s firewall-rules create --source any --protocol tcp --dport 22,7001,4001,3001 $firewall_policy_id
 brightbox -s firewall-rules create --destination any $firewall_policy_id
 
 vm_size=${TYPE:-nano}
