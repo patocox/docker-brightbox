@@ -6,10 +6,10 @@ RUN apt-get update && \
   apt-get update
 RUN apt-get -y install brightbox-cli openssh-client
 
+ADD cloud-config.yaml cloud-config.yaml
+ADD cloud-config-agent.yaml cloud-config-agent.yaml
 
 ADD cluster cluster
 RUN chmod +x cluster
-ADD cloud-config.yaml cloud-config.yaml
-ADD cloud-config-agent.yaml cloud-config-agent.yaml
 
 CMD ["./cluster"]
