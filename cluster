@@ -7,7 +7,7 @@ sed -i "s_discovery.*_discovery: ${cluster_id}_g" cloud-config.yaml
 #Create the pmx-agent vm with a new etcd key & ssh keys
 echo -e  'y\n'|ssh-keygen -q -t rsa -N '' -f id_rsa
 ssh_key_pub="$(<id_rsa.pub)"
-ssh_key_pri="$(<id_rsa)"
+ssh_key_pri="$(cat id_rsa  | base64)"
 sed -i "s_ssh-rsa.*_${ssh_key_pub}_g" cloud-config-agent.yaml
 
 
@@ -15,7 +15,7 @@ brightbox config client_add $APP_ID $SECRET_ID
 server_group=`brightbox -s groups create -n "coreos" | grep -o grp.* | awk '{print $1}'`
 
 firewall_policy_id=`brightbox firewall-policies create -n "coreos" $server_group | grep -o fwp.* |  awk '{print $1}'`
-brightbox -s firewall-rules create --source any --protocol tcp --dport 22,7001,4001,3001,8080 $firewall_policy_id
+brightbox -s firewall-rules create --source any --protocol tcp --dport 22,7001,4001,3001,8080,3306 $firewall_policy_id
 brightbox -s firewall-rules create --destination any $firewall_policy_id
 
 vm_size=${TYPE:-nano}
@@ -30,13 +30,18 @@ pmx_installer_ip=`brightbox -s cloudips create --name  "pmx_installer_ip" | grep
 sleep 10
 pmx_installer_public_ip=`brightbox cloudips map $pmx_installer_ip $pmx_installer_id  | grep -Eo '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}'`
 
-echo -e "\n\nBrightbox CoreOS cluster complete! You can delete this application from Panamax safely. \nTo complete the Panamax Remote Agent Installation, \nSSH into your installer ($ ssh core@$pmx_installer_public_ip) and follow these instructions: \nhttps://github.com/CenturyLinkLabs/panamax-ui/wiki/Panamax-Remote-Agent-Installation"
 echo -e "\nFleet API IP: http://$private_ip:4001"
 echo -e "\nPMX Installer IP: $pmx_installer_public_ip"
 echo -e "\n\n\n$ssh_key_pri\n\n\n"
+
+
+#Creating etcd keys
+etcd_api=http://${ETCD_API}/v2/keys
+curl  --data-urlencode -sL -X PUT $etcd_api/agent-pri-ssh-key -d "value=$ssh_key_pri"
+curl -sL -X PUT $etcd_api/agent-fleet-api -d value=$private_ip
+curl -sL -X PUT $etcd_api/agent-public-ip -d value=$pmx_installer_public_ip
 
 until [ "1" == "0" ];
 do
   sleep 20
 done
-
